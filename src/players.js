@@ -8,15 +8,20 @@ const config = require("../config.json");
 const tokens = require("../tokens.json");
 // config.prefix contains the message prefix.
 
+// winston logger
+const logger = require("./logging.js").logger;
+
 client.on("ready", () => {
     // This event will run if the bot starts, and logs in, successfully.
     console.log(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
 });
 
 
-client.on("message", async message => {
+client.on("message", message => {
     //Ignore Bots
-    if(message.author.bot) return;
+    if (message.author.bot) return;
+
+    logger.info(message);
 
     // Ignore Messages without Command Prefix
     if(message.content.indexOf(config.prefix) !== 0) return;
