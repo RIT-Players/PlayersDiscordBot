@@ -17,18 +17,17 @@ const commands = {
 
 
             logCommand(this.name, args); // logging
-
-
-            let msg = "Commands:";
-
+            
 
             // help only takes at most one argument
             if (args.length > 1) {
-                msg = `usage: ${this.usage}`;
+                sendUsage(this.name, message);
+                return;
+            }
 
 
-                // help with one argument
-            } else if (args.length === 1) {
+            // help with one argument
+            if (args.length === 1) {
 
                 // argument must be a valid command
                 if (commands[args[0]] === undefined) {
@@ -36,30 +35,31 @@ const commands = {
                     switch (args[0]) {
 
                         case "me": // a nice little response?
-                            msg = `Anything you need, I'm always here ${message.member.displayName}.`;
+                            message.channel.send(`Anything you need, I'm always here ${message.member.displayName}.`);
                             break;
 
                         default: // people need to enter a command that we know
-                            msg = `I don't know ${args[0]}.`;
+
+                            unknownCommand(`help ${args[0]}`, [], message);
                             break;
 
                     }
 
                     // display the command usage
-                } else
-                    msg = `Usage of ${args[0]} ((required) [optional]): ${commands[args[0]].usage}`; // todo
-
+                } else sendUsage(args[0], message);
+                
 
                 // help with no argument
             } else {
 
+                let msg = "Commands:"
+
                 // build help message
                 for (let key in commands)
                     msg += "\n" + commands[key].name + " - " + commands[key].help;
+                
+                message.channel.send(msg);
             }
-
-
-            message.channel.send(msg);
         }
     },
 
@@ -140,6 +140,36 @@ function logCommand(cmd, args) {
 
 
 /**
+ * To be run when an unknown command sent in a message.
+ * @param {string} cmd      the command
+ * @param {string[]} args   the command arguments
+ * @param {Message} message the message that the command was sent in
+ */
+function unknownCommand(cmd, args, message) {
+
+    // logging
+    logger.info(`Unknown command "${cmd}" with args:`);
+    logger.info(args);
+
+    // unknown command message (todo?)
+    message.channel.send(`I don't know '${cmd}'. Try running '${config.prefix}help'`);
+
+}
+
+
+/**
+ * Respond to a message with the usage of a command.
+ * @param {string} cmd      the command
+ * @param {Message} message the message to respond to
+ */
+function sendUsage(cmd, message) {
+    
+    message.channel.send(`Usage of ${cmd} ((required) [optional]): ${commands[cmd].usage}`); // todo
+
+}
+
+
+/**
  * Run a command that was send to a channel.
  * @param {string} cmd      the command
  * @param {string[]} args   the command arguments
@@ -150,8 +180,6 @@ exports.run = function (cmd, args, message) {
     // run the command if it is known
     if (commands[cmd]) commands[cmd].func(args, message);
 
-    else { // todo
-        logger.info("woah that was unexpected");
-    }
+    else unknownCommand(cmd, args, message);
 
 };
