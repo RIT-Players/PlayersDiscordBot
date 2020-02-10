@@ -52,7 +52,7 @@ exports.help = {
             // help with no argument
         } else {
 
-            let msg = "Commands:"
+            let msg = "Commands:";
 
             // build help message
             for (let key in commands)
