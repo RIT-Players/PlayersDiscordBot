@@ -108,3 +108,4 @@ dist
 tokens.json
 .idea/*
 .DS_Store
+.vs/*
