@@ -20,7 +20,9 @@ const commands = {
     
     schedule: cmds_schedule.schedule,
     
-    iam: cmds_roles.iam
+    iam: cmds_roles.iam,
+
+    role: cmds_roles.role
 
     // MORE COMMANDS GET ADDED HERE
 

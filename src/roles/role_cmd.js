@@ -8,29 +8,41 @@ const data = require('./json.js');
 const commands = {
 
     create: {
+        func: function (args, message) {
 
+            if (args.length < 1) {
+                // todo
+                return;
+            }
+
+            // todo
+            data.add(args[0]);
+
+        }
     },
-    add: { cmd_nick: this.create },
+    add: { cmd_nick: 'create' },
 
     edit: {
 
     },
-    set: { cmd_nick: this.edit },
+    set: { cmd_nick: 'edit' },
 
     delete: {
 
     },
-    del: { cmd_nick: this.del },
-    remove: { cmd_nick: this.del },
-    rm: { cmd_nick: this.del },
+    del: { cmd_nick: 'delete' },
+    remove: { cmd_nick: 'delete' },
+    rm: { cmd_nick: 'delete' },
 
     rename: {
 
     },
-    rnm: { cmd_nick: this.rename },
+    rnm: { cmd_nick: 'rename' },
 
     list: {
-
+        func: function (args, message) {
+            data.output(message.channel);
+        }
     }
 
 };
@@ -42,9 +54,16 @@ const commands = {
  */
 exports.run = function (args, message) {
 
-    message.channel.send("did a thing");
+    if (args.length < 1) {
+        // todo
+        return;
+    }
 
-    data.test();
+    if (commands[args[0]]) {
+        let s_cmd = args.shift();
+        if (commands[s_cmd].cmd_nick) commands[commands[s_cmd].cmd_nick].func(args, message);
+        else commands[s_cmd].func(args, message);
+    }
 
 };
 

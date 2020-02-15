@@ -33,7 +33,9 @@ exports.ttmtg = {
         min %= 60;
         h %= 24;
 
-        message.channel.send(`${day} days, ${h} hours, ${min} minutes, and ${s} seconds until the next Players meeting.`);
+        message.channel.send(`${day} days, ${h} hours, ${min} minutes, and ${s} seconds until the next Players meeting.`)
+            .then(message => message.react('676498288416915471'))
+            .catch(console.error);
 
     }
 

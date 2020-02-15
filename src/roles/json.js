@@ -4,7 +4,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 
 const file = __dirname + '/data.json';
 
@@ -18,6 +17,8 @@ function save() {
 
 function load() {
 
+    if (!fs.existsSync(file)) return;
+
     fs.readFile(file, (err, d) => {
         if (err) throw err;
         data = JSON.parse(d);
@@ -25,9 +26,27 @@ function load() {
 
 }
 
-exports.test = function () {
 
-    data.test = "hi";
+load();
+
+exports.add = function (role, opts) {
+
+    data[role] = opts ? opts : {};
     save();
 
-}
+};
+
+exports.output = function (channel) {
+
+    let msg = '';
+
+    for (let role in data) {
+        msg += `\nRole: '${role}'`;
+        for (let opt in data[role]) {
+            msg += `\n     ${opt}: ${data[role][opt]}`;
+        }
+    }
+
+    channel.send(msg);
+
+};
