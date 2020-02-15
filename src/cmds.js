@@ -1,3 +1,6 @@
+/**
+ * Manages command calling for the whole bot.
+ */
 
 // requires
 const config = require("../config.json");
@@ -6,18 +9,18 @@ const logger = require("./logging.js").logger;
 const cmds_util = require('./util/cmds.js');
 const cmds_schedule = require('./schedule/cmds.js');
 const cmds_players = require('./players/cmds.js');
+const cmds_roles = require('./roles/cmds.js');
 
 /** the players bot commands */
 const commands = {
-
-    // util
+    
     help: cmds_util.help,
-
-    // players
+    
     ttmtg: cmds_players.ttmtg,
-
-    // schedule
-    schedule: cmds_schedule.schedule
+    
+    schedule: cmds_schedule.schedule,
+    
+    iam: cmds_roles.iam
 
     // MORE COMMANDS GET ADDED HERE
 
@@ -67,7 +70,7 @@ exports.sendUsage = (cmd, message) => {
 
 /**
  * Get all the bot commands as an object.
- * @return the object
+ * @return {Object} the object
  */
 exports.getCommands = () => {
 

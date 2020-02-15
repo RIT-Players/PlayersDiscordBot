@@ -9,7 +9,7 @@ exports.ttmtg = {
     usage: 'ttmtg',
     help: 'displays the time until the next RIT Players meeting',
     func: function (args, message) {
-        
+
         main.logCommand(this.name, args); // logging
 
         let d = new Date(); // 'now'
@@ -37,4 +37,4 @@ exports.ttmtg = {
 
     }
 
-}
+};
