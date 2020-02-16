@@ -36,6 +36,19 @@ exports.add = function (role, opts) {
 
 };
 
+exports.delete = function (role) {
+
+    if (data[role]) delete data[role];
+    save();
+
+};
+
+exports.get = function (role) {
+
+    return data[role];
+
+};
+
 exports.output = function (channel) {
 
     let msg = '';

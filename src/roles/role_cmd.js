@@ -29,12 +29,42 @@ const commands = {
 
     delete: {
 
+        func: function (args, message) {
+
+            if (args.length < 1) {
+
+                // todo
+                return;
+
+            }
+
+            data.delete(args[0]);
+
+        }
+
     },
     del: { cmd_nick: 'delete' },
     remove: { cmd_nick: 'delete' },
     rm: { cmd_nick: 'delete' },
 
     rename: {
+
+        func: function (args, message) {
+
+            if (args.length < 2) {
+
+                // todo
+                return;
+
+            }
+
+            let temp = data.get(args[0]);
+
+            data.delete(args[0]);
+
+            data.add(args[1], temp);
+
+        }
 
     },
     rnm: { cmd_nick: 'rename' },
