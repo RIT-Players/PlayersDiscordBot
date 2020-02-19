@@ -2,9 +2,18 @@
  * Handles subcommands of the role command.
  */
 
-const data = require('./json.js');
+const roles = require('./roles.js');
 
-
+/**
+ * 'role' command subcommands.
+ *
+ * Organized in the form:
+ * sub_cmd: {
+ *      help: {string}                      help message for command
+ *      usage: {string}                     usage info for command
+ *      func: {function(string, Message)}   function that handles command call
+ * }
+ */
 const commands = {
 
     create: {
@@ -19,7 +28,19 @@ const commands = {
             }
 
             // todo
-            data.add(args[0]);
+            if (args.length === 1) {
+
+                roles.create(message.guild, args[0]).catch(e => {
+
+                    // confirmation/error message
+                    if (typeof e === "string")
+                        message.channel.send(e);
+                    else
+                        console.error(e);
+
+                });
+
+            }
 
         }
     },
@@ -46,8 +67,17 @@ const commands = {
 
             }
 
-            data.delete(args[0]);
+            roles.delete(message.guild, args[0]).catch(e => {
 
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
+
+            });
+                
+            
         }
 
     },
@@ -68,11 +98,15 @@ const commands = {
 
             }
 
-            let temp = data.get(args[0]);
+            roles.rename(message.guild, args[0], args[1]).catch(e => {
 
-            data.delete(args[0]);
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
 
-            data.add(args[1], temp);
+            });
 
         }
 
@@ -84,7 +118,7 @@ const commands = {
         help: 'display assignable roles',
         usage: 'list [role]',
         func: function (args, message) {
-            data.output(message.channel);
+            roles.list(message.channel, args[0]);
         }
     }
 

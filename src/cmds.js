@@ -22,6 +22,8 @@ const commands = {
     
     iam: cmds_roles.iam,
 
+    iamnot: cmds_roles.iamnot,
+
     role: cmds_roles.role
 
     // MORE COMMANDS GET ADDED HERE

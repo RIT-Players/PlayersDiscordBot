@@ -4,7 +4,7 @@ const main = require('../cmds.js');
 
 // roles command handler
 const role_cmd = require('./role_cmd.js');
-
+const roles = require('./roles.js');
 
 exports.iam = {
 
@@ -15,7 +15,23 @@ exports.iam = {
 
         main.logCommand(this.name, args); // logging
 
-        role_cmd.run(args, message);
+        if (args.length < 1) {
+
+            // todo
+
+            return;
+
+        }
+
+        roles.assign(message.member, args[0]).catch(e => {
+
+            // confirmation/error message
+            if (typeof e === "string")
+                message.channel.send(e);
+            else
+                console.error(e);
+
+        });
 
     }
 
@@ -30,7 +46,15 @@ exports.iamnot = {
 
         main.logCommand(this.name, args); // logging
 
+        roles.unassign(message.member, args[0]).catch(e => {
 
+            // confirmation/error message
+            if (typeof e === "string")
+                message.channel.send(e);
+            else
+                console.error(e);
+
+        });
 
     }
 
