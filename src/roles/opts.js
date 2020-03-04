@@ -4,7 +4,34 @@
 
 // opts can be given in the format name=value or in js format
 
-const checkColor = require("discord.js").ClientDataResolver.resolveColor;
+const checkColor = function (color) {
+    let colors = {
+        DEFAULT: 0x000000, WHITE: 0xffffff, AQUA: 0x1abc9c, GREEN: 0x2ecc71, BLUE: 0x3498db,
+        YELLOW: 0xffff00, PURPLE: 0x9b59b6, LUMINOUS_VIVID_PINK: 0xe91e63, GOLD: 0xf1c40f,
+        ORANGE: 0xe67e22, RED: 0xe74c3c, GREY: 0x95a5a6, NAVY: 0x34495e, DARK_AQUA: 0x11806a,
+        DARK_GREEN: 0x1f8b4c, DARK_BLUE: 0x206694, DARK_PURPLE: 0x71368a, DARK_VIVID_PINK: 0xad1457,
+        DARK_GOLD: 0xc27c0e, DARK_ORANGE: 0xa84300, DARK_RED: 0x992d22, DARK_GREY: 0x979c9f,
+        DARKER_GREY: 0x7f8c8d, LIGHT_GREY: 0xbcc0c0, DARK_NAVY: 0x2c3e50, BLURPLE: 0x7289da,
+        GREYPLE: 0x99aab5, DARK_BUT_NOT_BLACK: 0x2c2f33, NOT_QUITE_BLACK: 0x23272a,
+    };
+    if (typeof color === 'string') {
+        color = color.toUpperCase();
+        if (color === 'RANDOM') return Math.floor(Math.random() * (0xFFFFFF + 1));
+        if (color === 'DEFAULT') return 0;
+        color = colors[color] || parseInt(color.replace('#', ''), 16);
+    } else if (color instanceof Array) {
+        color = (color[0] << 16) + (color[1] << 8) + color[2];
+    }
+
+    if (color < 0 || color > 0xFFFFFF) {
+        //throw new RangeError('Color must be within the range 0 - 16777215 (0xFFFFFF).');
+        return undefined;
+    } else if (!color || isNaN(color)) {
+        //throw new TypeError('Unable to convert color to a number.');
+        return undefined;
+    }
+    return color;
+};//require("discord.js").ClientDataResolver.resolveColor;
 const checkBoolean = function (s) {
 
     // s is not a string
@@ -25,12 +52,12 @@ const checkBoolean = function (s) {
     return undefined;
 };
 const checkNumber = Number;
-const checkPermissions = require('discord.js').Permissions.resolve;
+const checkPermissions = require('discord.js').Permissions;
 
 
 const role_opts = {
 
-    name: {
+    name: { // role name
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -46,7 +73,7 @@ const role_opts = {
         check: function (s) { return s; }
 
     },
-    color: {
+    color: { // role color
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -57,22 +84,10 @@ const role_opts = {
         },
 
         // validate string for option (returns checked value or undefined if invalid)
-        check: function (s) {
-
-            try {
-
-                // attempt to parse
-                return checkColor(s);
-            } catch (e) {
-
-                // there was an error
-                return undefined;
-            }
-
-        }
+        check: checkColor
 
     },
-    hoist: {
+    hoist: { // display role in its own section in the member list
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -85,7 +100,7 @@ const role_opts = {
         // validate string for option (returns checked value or undefined if invalid)
         check: checkBoolean
     },
-    position: {
+    position: { // role position?
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -106,7 +121,7 @@ const role_opts = {
 
         }
     },
-    permissions: {
+    permissions: { // role permissions
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -121,8 +136,11 @@ const role_opts = {
 
             try {
 
+                if (parseInt(s))
+                    s = parseInt(s);
+
                 // attempt to parse
-                return checkPermissions(s);
+                return new checkPermissions(s);
             } catch (e) {
 
                 // there was an error
@@ -131,7 +149,7 @@ const role_opts = {
 
         }
     },
-    mentionable: {
+    mentionable: { // allow role to be mentioned by everyone
 
         // actually assigns checked value
         assign: function (role, v) {
@@ -150,23 +168,133 @@ const role_opts = {
 
 exports.parse = function (s) {
 
+    let o = {};
+
+    // try parse json
+    if (s.charAt() === '{') {
+
+        let t;
+
+        try {
+
+            t = JSON.parse(s);
+
+        } catch (e) {
+
+            return `json fail`; // todo
+
+        }
+
+        // verify we know all of the things
+        for (let k in t)
+            if (role_opts[k] === undefined) return `${k} json fail`; // todo
+
+        o = t;
+
+    } else {
+
+        let t = parseAssignmentList(s);
+
+        for (let i = 0; i < t.length; i++) {
+
+            // check for parsing error
+            if (t[i].name === undefined || t[i].value === undefined)
+                return `empty fail`; // todo
+
+            // verify we know all of the things
+            if (role_opts[(t[i].name = t[i].name.trim())] === undefined)
+                return `${t[i].name} list fail`; // todo
+
+            o[t[i].name] = t[i].value.trim();
+        }
+
+    }
+
+    // verify each assignment
+    for (let k in o) {
+
+        o[k] = role_opts[k].check(o[k]);
+
+        if (o[k] === undefined)
+            return `${k} check fail`; // todo
+
+    }
+
+    return o;
+
+};
+
+exports.assign = function (role, opts) {
+
+    let p = [];
+
+    for (let k in opts) {
+        p.push(role_opts[k].assign(role, opts[k]).catch(e => {
+
+            if (typeof e !== "string")
+                throw `${k} fail`; // todo
+
+            return `${k} success`;
+
+        }));
+    }
+
+    return Promise.all(p).then(m => { throw `overall success`; });
+
+}
+
+/**
+ * Parse an assignment list (that, for example, would be passed in a command)
+ * into a list of corresponding objects.
+ *
+ * @param {string} s    the string to parse
+ * @returns {object}    a list of objects with name and value properties
+ */
+function parseAssignmentList (s) {
+
     let a = [{}];
     let q = false; // quotation
     let b = false; // backslash
 
-    for (let c in s) {
+    for (let i = 0; i < s.length; i++) {
 
+        // quick reference
         let o = a[a.length - 1];
 
-        if (o.value === undefined) {
-
-
-
-        } else {
-
+        // a comma separates assignment
+        if (s.charAt(i) === ',' && !q && !b) {
+            a.push({});
+            continue;
         }
 
+        // an equals sign separates name and value
+        if (s.charAt(i) === '=' && o.value === undefined && !q && !b) {
+            o.value = "";
+            continue;
+        }
+
+        // quotation marks are special
+        if (s.charAt(i) === '"' && !b) {
+            q = !q;
+            continue;
+        }
+
+        // backslashes work as escape characters
+        if (s.charAt(i) === '\\' && !b) {
+            b = true;
+            continue;
+        } else if (b) b = false;
+
+        // build o.name and o.value
+        if (o.value === undefined) {
+            if (o.name === undefined) o.name = "";
+            o.name += s.charAt(i);
+        } else
+            o.value += s.charAt(i);
+
     }
+
+    return a;
 
 };
 

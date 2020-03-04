@@ -49,7 +49,27 @@ const commands = {
     edit: {
 
         help: 'edit an assignable role',
-        usage: 'edit (role) (new opts)'
+        usage: 'edit (role) (new opts)',
+        func: function (args, message) {
+            if (args.length < 2) {
+
+                // todo
+                return;
+
+            }
+
+            let r = args.shift();
+
+            roles.edit(message.guild, r, args.join(' ')).catch(e => {
+
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
+
+            });
+        }
 
     },
     set: { cmd_nick: 'edit' },

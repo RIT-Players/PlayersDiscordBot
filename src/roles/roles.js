@@ -3,6 +3,8 @@
  */
 
 const data = require('./json.js');
+const opts_handling = require("./opts.js");
+const logger = require("../logging.js").logger;
 
 exports.create = function (guild, name, opts) {
     if (opts) {
@@ -53,6 +55,37 @@ exports.delete = function (guild, name) {
 
     } else return Promise.reject(`'${name}' does not exist or is not an assignable role!`);
 };
+
+exports.edit = function (guild, name, opts) {
+
+    // ensure this is an assignable role
+    if (data.get(name)) {
+
+        // get role with name
+        let r = guild.roles.find(role => role.name === name);
+
+        // role doesn't exist
+        if (!r) {
+
+            // correct data
+            data.delete(name);
+
+            // error message
+            return Promise.reject(`'${name}' was deleted and does not exist!`);
+        }
+
+        let o = opts_handling.parse(opts);
+
+        if (typeof o === 'string')
+            return Promise.reject(o);
+
+        logger.info('role edit with opts: %o', o);
+
+        return opts_handling.assign(r, o);
+
+    } else return Promise.reject(`'${name}' does not exist or is not an assignable role!`);
+
+}
 
 exports.rename = function (guild, old_name, new_name) {
 
