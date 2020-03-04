@@ -29,34 +29,71 @@ function load() {
 
 load();
 
-exports.add = function (role, opts) {
+exports.add = function (guild, role, opts) {
 
-    data[role] = opts ? opts : {};
+    if (!data[guild]) data[guild] = {};
+    data[guild][role] = opts ? opts : {};
     save();
 
 };
 
-exports.delete = function (role) {
+exports.delete = function (guild, role) {
 
-    if (data[role]) delete data[role];
+    if (exports.get(guild, role)) delete data[guild][role];
     save();
 
 };
 
-exports.get = function (role) {
+exports.edit = function (guild, role, opts) {
 
-    return data[role];
+    if (!exports.get(guild, role)) return;
+
+    data[guild][role] = { ...data[guild][role], ...opts };
+
+    save();
 
 };
 
-exports.output = function (channel) {
+exports.get = function (guild, role) {
+
+    // guild should have roles
+    if (!data[guild]) return undefined;
+
+    return data[guild][role];
+
+};
+
+exports.output = function (channel, role) {
 
     let msg = '';
+    let roles = data[channel.guild.id];
 
-    for (let role in data) {
-        msg += `\nRole: '${role}'`;
-        for (let opt in data[role]) {
-            msg += `\n     ${opt}: ${data[role][opt]}`;
+    if (!roles || Object.keys(roles).length < 1)
+        msg = 'There are no self-assignable roles in this server.';
+
+    else {
+
+        if (role) {
+
+            let opt = roles[role];
+            if (!opt) msg = `'${role}' does not exist or is not an assignable role!`;
+            else {
+
+                msg += `\nRole: '${role}'`;
+                for (let o in opt) {
+                    msg += `\n     ${o}: ${opt[o]}`;
+                }
+
+            }
+
+        } else {
+
+            for (let r in roles) {
+                msg += `\nRole: '${r}'`;
+                for (let opt in roles[r]) {
+                    msg += `\n     ${opt}: ${roles[r][opt]}`;
+                }
+            }
         }
     }
 

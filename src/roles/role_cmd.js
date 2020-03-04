@@ -27,10 +27,21 @@ const commands = {
                 return;
             }
 
-            // todo
-            if (args.length === 1) {
+            let p = roles.create(message.guild, args[0]).catch(e => {
 
-                roles.create(message.guild, args[0]).catch(e => {
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
+
+            });
+
+            if (args.length > 1) {
+
+                let r = args.shift();
+
+                p.then(() => roles.edit(message.guild, r, args.join(' ')).catch(e => {
 
                     // confirmation/error message
                     if (typeof e === "string")
@@ -38,7 +49,7 @@ const commands = {
                     else
                         console.error(e);
 
-                });
+                }));
 
             }
 
