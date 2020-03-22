@@ -1,6 +1,7 @@
-/**
- * Handles subcommands of the role command.
- */
+//
+// Handles subcommands of the role command.
+//
+//
 
 const roles = require('./roles.js');
 

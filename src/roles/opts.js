@@ -1,9 +1,14 @@
-/**
- * Handles roles options parsing.
- */
+//
+// Handles roles options parsing.
+// Options can be given in two different ways:
+// - pure js: {color:"red",mentionable:true}
+// - name-value pairs: color = red, mentionable = true
+//
+//
 
-// opts can be given in the format name=value or in js format
 
+// these functions are the way in which parsing validates user-inputed values
+// they are gathered here for easy changing
 const checkColor = function (color) {
     let colors = {
         DEFAULT: 0x000000, WHITE: 0xffffff, AQUA: 0x1abc9c, GREEN: 0x2ecc71, BLUE: 0x3498db,
@@ -54,7 +59,7 @@ const checkBoolean = function (s) {
 const checkNumber = Number;
 const checkPermissions = require('discord.js').Permissions;
 
-
+// the options a role can have
 const role_opts = {
 
     name: { // role name
@@ -165,7 +170,11 @@ const role_opts = {
 
 };
 
-
+/**
+ * Parse a string to an options object.
+ * @param {string} s        the options to parse
+ * @returns {object|string} the parsed object or a failure message
+ */
 exports.parse = function (s) {
 
     let o = {};
@@ -224,6 +233,12 @@ exports.parse = function (s) {
 
 };
 
+/**
+ * Assign options to a role.
+ * @param {Role} role           the Discord role
+ * @param {object} opts         the parsed role options
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.assign = function (role, opts) {
 
     let p = [];
@@ -241,7 +256,7 @@ exports.assign = function (role, opts) {
 
     return Promise.all(p).then(m => { throw `overall success`; });
 
-}
+};
 
 /**
  * Parse an assignment list (that, for example, would be passed in a command)
@@ -296,5 +311,5 @@ function parseAssignmentList (s) {
 
     return a;
 
-};
+}
 

@@ -1,7 +1,8 @@
-/**
- * This file can be renamed at some point.
- * Used for json handlings of the roles system.
- */
+//
+// This file can be renamed at some point.
+// Used for json handlings of the roles system.
+//
+//
 
 const fs = require('fs');
 
@@ -9,12 +10,18 @@ const file = __dirname + '/data.json';
 
 let data = {};
 
+/**
+ * Write data to JSON file.
+ */
 function save() {
 
     fs.writeFileSync(file, JSON.stringify(data));
 
 }
 
+/**
+ * Read data from JSON file.
+ */
 function load() {
 
     if (!fs.existsSync(file)) return;
@@ -26,9 +33,15 @@ function load() {
 
 }
 
-
+// start by loading any initial data
 load();
 
+/**
+ * Add a role to save to the data file.
+ * @param {string} guild    the id of guild the role is in
+ * @param {string} role     the name of the role
+ * @param {object} opts     the non-default options of the role
+ */
 exports.add = function (guild, role, opts) {
 
     if (!data[guild]) data[guild] = {};
@@ -37,6 +50,11 @@ exports.add = function (guild, role, opts) {
 
 };
 
+/**
+ * Delete a role from the data file.
+ * @param {string} guild    the id of guild the role is in
+ * @param {string} role     the name of the role
+ */
 exports.delete = function (guild, role) {
 
     if (exports.get(guild, role)) delete data[guild][role];
@@ -44,6 +62,12 @@ exports.delete = function (guild, role) {
 
 };
 
+/**
+ * Change a role's options in the data file.
+ * @param {string} guild    the id of guild the role is in
+ * @param {string} role     the name of the role
+ * @param {object} opts     the options to change and their values
+ */
 exports.edit = function (guild, role, opts) {
 
     if (!exports.get(guild, role)) return;
@@ -54,6 +78,12 @@ exports.edit = function (guild, role, opts) {
 
 };
 
+/**
+ * Get the options for a role.
+ * @param {string} guild    the id of the guild the role is in
+ * @param {string} role     the name of the role
+ * @returns {object}        the options of the role or undefined if role does not exist
+ */
 exports.get = function (guild, role) {
 
     // guild should have roles
@@ -63,6 +93,11 @@ exports.get = function (guild, role) {
 
 };
 
+/**
+ * Output saved role data to a Discord channel.
+ * @param {Channel} channel the Discord channel
+ * @param {string} role     [optional] the name of the role whose options to list
+ */
 exports.output = function (channel, role) {
 
     let msg = '';

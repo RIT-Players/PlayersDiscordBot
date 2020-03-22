@@ -1,6 +1,7 @@
-/**
- * Handles operations with roles on a Discord server.
- */
+//
+// Handles operations with roles on a Discord server.
+//
+//
 
 // FEATURE ADDITION LIST?
 // - sync roles in case things happen
@@ -10,6 +11,12 @@ const data = require('./json.js');
 const opts_handling = require("./opts.js");
 const logger = require("../logging.js").logger;
 
+/**
+ * Add a new self-assignable role to a Discord server.
+ * @param {Guild} guild         the Discord server
+ * @param {string} name         the name of the role
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.create = function (guild, name) {
 
     return guild.createRole({ name: name }, 'bot-created self-assignable role').then(role => {
@@ -23,6 +30,12 @@ exports.create = function (guild, name) {
     });
 };
 
+/**
+ * Delete a self-assignable role from a Discord server.
+ * @param {Guild} guild         the Discord server
+ * @param {string} name         the name of the role
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.delete = function (guild, name) {
 
     // ensure this is an assignable role
@@ -55,6 +68,13 @@ exports.delete = function (guild, name) {
     } else return Promise.reject(`'${name}' does not exist or is not an assignable role!`);
 };
 
+/**
+ * Edit the options of a self-assignable role in a Discord server.
+ * @param {Guild} guild         the Discord server
+ * @param {string} name         the name of the role
+ * @param {string} opts         the role options to change
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.edit = function (guild, name, opts) {
 
     // ensure this is an assignable role
@@ -89,15 +109,22 @@ exports.edit = function (guild, name, opts) {
             // update the data
             data.edit(guild.id, name, o);
 
-            // pass messag 
+            // pass message
             throw e;
 
         });
 
     } else return Promise.reject(`'${name}' does not exist or is not an assignable role!`);
 
-}
+};
 
+/**
+ * Rename a self-assignable role in a Discord server.
+ * @param {Guild} guild         the Discord server
+ * @param {string} old_name     the name of the role
+ * @param {string} new_name     the new name of the role
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.rename = function (guild, old_name, new_name) {
 
     // ensure this is an assignable role
@@ -132,6 +159,12 @@ exports.rename = function (guild, old_name, new_name) {
 
 };
 
+/**
+ * Assign a self-assignable role to a member in a Discord server.
+ * @param {GuildMember} member  the guild member to assign the role to
+ * @param {string} name         the name of the role
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.assign = function (member, name) {
 
     if (data.get(member.guild.id, name)) {
@@ -159,6 +192,12 @@ exports.assign = function (member, name) {
 
 };
 
+/**
+ * Unassign a self-assignable role in a Discord server.
+ * @param {GuildMember} member  the guild member to assign the role to
+ * @param {string} name         the name of the role
+ * @returns {Promise<never>}    a Promise that throws the success message
+ */
 exports.unassign = function (member, name) {
 
     if (data.get(member.guild.id, name)) {
@@ -190,6 +229,11 @@ exports.unassign = function (member, name) {
 
 };
 
+/**
+ * List the self-assignable roles and their options in a Discord channel.
+ * @param {Channel} channel the Discord channel
+ * @param {string} name     [optional] the name of the role whose options to list
+ */
 exports.list = function (channel, name) {
 
     data.output(channel, name);

@@ -1,3 +1,7 @@
+//
+// Interface with main bot command system.
+//
+//
 
 // main cmds.js
 const main = require('../cmds.js');
