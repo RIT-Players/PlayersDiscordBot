@@ -1,7 +1,7 @@
 //
 // Handles roles options parsing.
 // Options can be given in two different ways:
-// - pure js: {color:"red",mentionable:true}
+// - pure js: {"color":"red","mentionable":true}
 // - name-value pairs: color = red, mentionable = true
 //
 //
@@ -38,6 +38,8 @@ const checkColor = function (color) {
     return color;
 };//require("discord.js").ClientDataResolver.resolveColor;
 const checkBoolean = function (s) {
+
+    if (typeof s === 'boolean') return s;
 
     // s is not a string
     if (typeof s !== 'string') return undefined;
@@ -190,13 +192,13 @@ exports.parse = function (s) {
 
         } catch (e) {
 
-            return `json fail`; // todo
+            return `Could not parse JSON input!`;
 
         }
 
         // verify we know all of the things
         for (let k in t)
-            if (role_opts[k] === undefined) return `${k} json fail`; // todo
+            if (role_opts[k] === undefined) return `'${k}' is not a role option!`;
 
         o = t;
 
@@ -208,11 +210,11 @@ exports.parse = function (s) {
 
             // check for parsing error
             if (t[i].name === undefined || t[i].value === undefined)
-                return `empty fail`; // todo
+                return `Could not parse options list!`;
 
             // verify we know all of the things
             if (role_opts[(t[i].name = t[i].name.trim())] === undefined)
-                return `${t[i].name} list fail`; // todo
+                return `'${t[i].name}' is not a role option!`;
 
             o[t[i].name] = t[i].value.trim();
         }
@@ -222,10 +224,11 @@ exports.parse = function (s) {
     // verify each assignment
     for (let k in o) {
 
+        let old = o[k];
         o[k] = role_opts[k].check(o[k]);
 
         if (o[k] === undefined)
-            return `${k} check fail`; // todo
+            return `The value '${old}' is not valid for '${k}'!`;
 
     }
 
@@ -247,14 +250,14 @@ exports.assign = function (role, opts) {
         p.push(role_opts[k].assign(role, opts[k]).catch(e => {
 
             if (typeof e !== "string")
-                throw `${k} fail`; // todo
+                throw `Failed to assign option '${k}'!`;
 
-            return `${k} success`;
+            return `'${k}' of '${role.name}' was changed to '${opts[k]}'.`;
 
         }));
     }
 
-    return Promise.all(p).then(m => { throw `overall success`; });
+    return Promise.all(p).then(m => { throw `Successfully edited role '${role.name}'.`; });
 
 };
 
