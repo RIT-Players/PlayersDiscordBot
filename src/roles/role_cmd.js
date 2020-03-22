@@ -30,6 +30,11 @@ const commands = {
                 return;
             }
 
+            if (!message.member.hasPermission('MANAGE_ROLES')) {
+                message.channel.send('You do not have permission to change the roles in this server.');
+                return;
+            }
+
             let p = roles.create(message.guild, args[0]).catch(e => {
 
                 // confirmation/error message
@@ -72,6 +77,11 @@ const commands = {
                 return;
             }
 
+            if (!message.member.hasPermission('MANAGE_ROLES')) {
+                message.channel.send('You do not have permission to change the roles in this server.');
+                return;
+            }
+
             let r = args.shift();
 
             roles.edit(message.guild, r, args.join(' ')).catch(e => {
@@ -97,6 +107,11 @@ const commands = {
 
             if (args.length < 1) {
                 exports.sendUsage(this.name, message);
+                return;
+            }
+
+            if (!message.member.hasPermission('MANAGE_ROLES')) {
+                message.channel.send('You do not have permission to change the roles in this server.');
                 return;
             }
 
@@ -127,6 +142,11 @@ const commands = {
 
             if (args.length < 2) {
                 exports.sendUsage(this.name, message);
+                return;
+            }
+
+            if (!message.member.hasPermission('MANAGE_ROLES')) {
+                message.channel.send('You do not have permission to change the roles in this server.');
                 return;
             }
 
