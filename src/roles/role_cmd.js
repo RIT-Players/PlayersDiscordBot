@@ -4,6 +4,7 @@
 //
 
 const roles = require('./roles.js');
+const config = require('../../config.json');
 
 /**
  * 'role' command subcommands.
@@ -19,12 +20,13 @@ const commands = {
 
     create: {
 
+        name: 'create',
         help: 'create an assignable role',
         usage: 'create (role) [opts]',
         func: function (args, message) {
 
             if (args.length < 1) {
-                // todo
+                exports.sendUsage(this.name, message);
                 return;
             }
 
@@ -60,14 +62,14 @@ const commands = {
 
     edit: {
 
+        name: 'edit',
         help: 'edit an assignable role',
         usage: 'edit (role) (new opts)',
         func: function (args, message) {
+
             if (args.length < 2) {
-
-                // todo
+                exports.sendUsage(this.name, message);
                 return;
-
             }
 
             let r = args.shift();
@@ -88,15 +90,14 @@ const commands = {
 
     delete: {
 
+        name: 'delete',
         help: 'delete an assignable role',
         usage: 'delete (role)',
         func: function (args, message) {
 
             if (args.length < 1) {
-
-                // todo
+                exports.sendUsage(this.name, message);
                 return;
-
             }
 
             roles.delete(message.guild, args[0]).catch(e => {
@@ -119,15 +120,14 @@ const commands = {
 
     rename: {
 
+        name: 'rename',
         help: 'rename an assignable role',
         usage: 'rename (old role) (new role)',
         func: function (args, message) {
 
             if (args.length < 2) {
-
-                // todo
+                exports.sendUsage(this.name, message);
                 return;
-
             }
 
             roles.rename(message.guild, args[0], args[1]).catch(e => {
@@ -189,5 +189,16 @@ exports.help = function () {
     }
 
     return msg;
+
+};
+
+/**
+ * Respond to a message with the usage of a command.
+ * @param {string} cmd      the command
+ * @param {Message} message the message to respond to
+ */
+exports.sendUsage = (cmd, message) => {
+
+    message.channel.send(`Usage of ${cmd} ((required) [optional]): ${config.prefix}${commands[cmd].usage}`); // todo
 
 };
