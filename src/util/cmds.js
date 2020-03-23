@@ -46,7 +46,13 @@ exports.help = {
                 }
 
                 // display the command usage
-            } else main.sendUsage(args[0], message);
+            } else {
+                main.sendUsage(args[0], message);
+
+                // support for adding extra info to the help message
+                if (commands[args[0]].help_more !== undefined)
+                    message.channel.send(commands[args[0]].help_more);
+            }
 
 
             // help with no argument
@@ -65,5 +71,5 @@ exports.help = {
 
 
 
-}
+};
 
