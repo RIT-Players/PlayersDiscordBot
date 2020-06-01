@@ -1,23 +1,37 @@
+const archiveFuncs = require('./archive_channel.js');
+const main = require('../cmds.js');
+fs = require('fs');
+
 const commands = {
     category: {
-
         name: "category",
-        usage: "category (\"category name\") [delete|keep]",
-        help: "archives a category",
+        usage: "category (\"category name\")",
+        help: "archives the category of the current channel, and all child channels",
         func: function(args, message) {
             main.logCommand(this.name, args);
+
+            const allChannels = message.channel.parent.children.array();
+
+            allChannels.forEach(chan=>{
+                if(chan.type === "text"){ //only handle text channels
+                    archiveFuncs.archiveChannel(chan).then(r =>{
+                        message.channel.send("Channel \'"+  chan.name + "\' Archived.")
+                    });
+                }
+            })
 
         }
 
     },
     channel: {
-
         name: "channel",
-        usage: "channel (\"Category Name\") (\"Channel Name\") [delete|keep]",
-        help: "archives a channel",
-        func: function(args, message) {
+        usage: "channel",
+        help: "archives the current channel",
+        func: function (args, message) {
             main.logCommand(this.name, args);
-
+            archiveFuncs.archiveChannel(message.channel).then(r => {
+                message.channel.send("Channel \'"+ message.channel.name + "\' Archived.")
+            });
         }
     }
 
@@ -49,9 +63,7 @@ exports.run = function (args, message) {
  * @return {string} extra help message
  */
 exports.help = function () {
-
     let msg = 'Archive Commands:';
-
     for (let key in commands) {
         msg += commands[key].cmd_nick ? '' : `\n${commands[key].usage} - ${commands[key].help}`;
     }
