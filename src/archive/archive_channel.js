@@ -4,11 +4,8 @@ normalize = require('path').normalize
 /** Parent Function for Archiving a Channel **/
 exports.archiveChannel =  async function(channel){
     await fetchAllMessages(channel).then( async(r) => {
-       await messageArrayToJSONArray(r).then(async (json) => {
-            let sortedJson = json.sort(function(a,b) {
-                return a.timestamp - b.timestamp;
-            });
-            await writeData(channel.parent.name, channel.name, sortedJson);
+       await messageArrayToJSONArray(r,channel).then(async (json) => {
+            await writeData(channel.parent.name, channel.name, json);
         }).catch(e=> {console.error(e)});
     });
 }
@@ -48,8 +45,11 @@ async function fetchAllMessages(channel) {
 
 //Writes data to a json file in the category folder.
 async function writeData(categoryName, channelName, data) {
-    let dir = 'channelArchive/' + categoryName
+    if(!fs.existsSync('channelArchive/')){
+        fs.mkdirSync('channelArchive');
+    }
 
+    let dir = 'channelArchive/' + categoryName
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
@@ -62,26 +62,37 @@ async function writeData(categoryName, channelName, data) {
 }
 
 //Creates an Array of JSON message entries form the Message array
-async function messageArrayToJSONArray(messagesArray){
+async function messageArrayToJSONArray(messagesArray, channel){
     let messagesJson = []
     for (const m of messagesArray) {
-        await createJsonFromMessage(m).then(k=>{messagesJson.push(k)}).catch(e => console.error(e))
+        messagesJson.push(createJsonFromMessage(m));
     }
 
-    return messagesJson;
+    messagesJson.sort(function(a,b) {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+
+    return {
+        metadata: {
+            channelName: channel.name,
+            categoryName: channel.parent.name,
+            serverName: channel.guild.name,
+            channelCreated: (new Date(channel.createdTimestamp)).toString(),
+            archiveCreated: (new Date()).toString(),
+        },
+        messages: messagesJson};
 }
 
 //Create a JSON entry from the message object
-async function createJsonFromMessage(message){
-
-    let authorNickname = "unknown user"
-
-    await message.guild.fetchMember(message.author).then(r => {authorNickname = r.displayName}).catch(e=>console.error(e))
-
-
+function createJsonFromMessage(message){
+    let author = message.guild.member(message.author);
+    let displayName = "Unknown Author";
+    if(author){
+        displayName = author.displayName;
+    }
     return {
-        author: authorNickname,
+        author: displayName,
         message: message.content,
-        timestamp: message.createdTimestamp
+        timestamp: (new Date(message.createdTimestamp)).toString()
     }
 }
