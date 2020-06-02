@@ -1,12 +1,22 @@
+resolve = require('path').resolve
+normalize = require('path').normalize
+
 /** Parent Function for Archiving a Channel **/
 exports.archiveChannel =  async function(channel){
-    await fetchAllMessages(channel).then(r => {
-        messageArrayToJSONArray(r).then(json => {
+    await fetchAllMessages(channel).then( async(r) => {
+       await messageArrayToJSONArray(r).then(async (json) => {
             let sortedJson = json.sort(function(a,b) {
                 return a.timestamp - b.timestamp;
             });
-            writeData(channel.parent.name, channel.name, sortedJson)
+            await writeData(channel.parent.name, channel.name, sortedJson);
         }).catch(e=> {console.error(e)});
+    });
+}
+
+exports.sendArchive = function(origMessage,channelName, categoryName){
+    let filePath = resolve('channelArchive/'+categoryName + "/" + channelName + ".json");
+    origMessage.author.send({files: [{attachment: filePath , name:channelName+".json"}]}).then(r=>{}).catch(e => {
+        origMessage.author.send("Hi!\n The Archive of "+channelName +" was successful, however I was unable to send it for some reason.\n Please check my server for the files you are looking for. \nThanks!")
     });
 }
 
@@ -37,14 +47,18 @@ async function fetchAllMessages(channel) {
 }
 
 //Writes data to a json file in the category folder.
-function writeData(categoryName, channelName, data){
-    let dir = 'channelArchive/'+categoryName
+async function writeData(categoryName, channelName, data) {
+    let dir = 'channelArchive/' + categoryName
 
-    if (!fs.existsSync(dir)){
+    if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 
-    fs.writeFile(dir + '/' + channelName + ".json", JSON.stringify(data, null,4), function(){})
+    let filePath = dir + '/' + channelName + ".json";
+
+    await fs.writeFile(filePath, JSON.stringify(data, null, 4), function () {
+    })
+    return filePath;
 }
 
 //Creates an Array of JSON message entries form the Message array
@@ -66,8 +80,8 @@ async function createJsonFromMessage(message){
 
 
     return {
+        author: authorNickname,
         message: message.content,
-        timestamp: message.createdTimestamp,
-        author: authorNickname
+        timestamp: message.createdTimestamp
     }
 }

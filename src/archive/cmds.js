@@ -8,7 +8,7 @@ const main = require('../cmds.js');
 const archive_cmd = require("./archive_cmds");
 exports.archive = {
     name: "archive",
-    usage: "archive (category|channel) [opts]",
+    usage: "archive (category|channel)",
     help: "archives the CURRENT channel or category",
     get help_more() {
         return archive_cmd.help();
