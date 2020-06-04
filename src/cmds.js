@@ -10,6 +10,7 @@ const cmds_util = require('./util/cmds.js');
 const cmds_schedule = require('./schedule/cmds.js');
 const cmds_players = require('./players/cmds.js');
 const cmds_roles = require('./roles/cmds.js');
+const cmds_archive = require('./archive/cmds.js');
 
 /** the players bot commands */
 const commands = {
@@ -24,8 +25,9 @@ const commands = {
 
     iamnot: cmds_roles.iamnot,
 
-    role: cmds_roles.role
+    role: cmds_roles.role,
 
+    archive: cmds_archive.archive
     // MORE COMMANDS GET ADDED HERE
 
 };
