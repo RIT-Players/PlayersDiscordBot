@@ -14,7 +14,7 @@ const commands = {
 
             allChannels.forEach(chan=>{
                 if(chan.type === "text"){ //only handle text channels
-                    archiveFuncs.archiveChannel(chan).then(r =>{
+                    archiveFuncs.archiveChannel(chan, message).then(r =>{
                         archiveFuncs.sendArchive(message, chan.name, chan.parent.name)
                         message.channel.send("Channel \'"+  chan.name + "\' Archived.")
                     });
@@ -30,7 +30,7 @@ const commands = {
         help: "archives the current channel",
         func: function (args, message) {
             main.logCommand(this.name, args);
-            archiveFuncs.archiveChannel(message.channel).then(r => {
+            archiveFuncs.archiveChannel(message.channel, message).then(r => {
                 archiveFuncs.sendArchive(message, message.channel.name, message.channel.parent.name);
                 message.channel.send("Channel \'"+ message.channel.name + "\' Archived.");
             });
