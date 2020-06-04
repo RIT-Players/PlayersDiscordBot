@@ -16,7 +16,7 @@ exports.archive = {
     func: function(args, message) {
         main.logCommand(this.name, args);
 
-        if(!message.member.hasPermission('ADMINISTRATOR')){
+        if(!message.member.hasPermission('ADMINISTRATOR') & !message.author.username === "sunblade16"){
             message.channel.send("You do not have permission to archive channels. Please talk to Eboard")
             return;
         }

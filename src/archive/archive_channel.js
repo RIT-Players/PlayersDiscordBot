@@ -1,8 +1,10 @@
 resolve = require('path').resolve
 normalize = require('path').normalize
+const logger = require("../logging.js").logger;
 
 /** Parent Function for Archiving a Channel **/
-exports.archiveChannel =  async function(channel){
+exports.archiveChannel =  async function(channel, origMessage){
+    logger.info("Archiving Channel " + channel.name)
     await fetchAllMessages(channel).then( async(r) => {
        await messageArrayToJSONArray(r,channel).then(async (json) => {
             await writeData(channel.parent.name, channel.name, json);
@@ -33,7 +35,9 @@ async function fetchAllMessages(channel) {
         const messages = await channel.fetchMessages(options);
         all_messages.push(...messages.array());
 
-        last_id = messages.last().id
+        if(messages.last()){
+            last_id = messages.last().id
+        }
 
         if(messages.size !== 100){
             break;
