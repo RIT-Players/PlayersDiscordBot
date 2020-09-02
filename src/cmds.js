@@ -24,6 +24,10 @@ const commands = {
 
     iamnot: cmds_roles.iamnot,
 
+    theyare: cmds_roles.theyare,
+
+    theyarenot: cmds_roles.theyarenot,
+
     role: cmds_roles.role
 
     // MORE COMMANDS GET ADDED HERE
