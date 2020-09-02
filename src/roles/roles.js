@@ -230,6 +230,40 @@ exports.unassign = function (member, name) {
 };
 
 /**
+ * Parse an array of strings in a message to an array of GuildMembers.
+ * @param {Array<string>} a         the array of strings to parse
+ * @param {Message} message         the message originally containing the strings
+ * @returns {Array<GuildMember>}    the array of GuildMembers (empty if incomplete)
+ */
+exports.members = function (a, message) {
+
+    let ret = []; // guild member array
+
+    for (let u of a) {
+
+        // regex check for mentions (take priority over string matching)
+        let rm = u.match(message.mentions.constructor.USERS_PATTERN);
+        if (rm) {
+            ret.push(message.channel.guild.member(rm[0].match(/[0-9]+/g)[0]));
+            continue;
+        }
+
+        // case-insesitive matching
+        let r = new RegExp(u, 'i');
+        rm = message.channel.guild.members.filter(mem => r.test(mem.displayName) || r.test(mem.user.username));
+
+        if (rm.size != 1) {
+            message.channel.send(`Could not find one user given '${u}'. Be more specific or try something else.`);
+            return [];
+        } else ret.push(rm.first());
+
+    }
+
+    return ret;
+
+}
+
+/**
  * List the self-assignable roles and their options in a Discord channel.
  * @param {Channel} channel the Discord channel
  * @param {string} name     [optional] the name of the role whose options to list
