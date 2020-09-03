@@ -4,7 +4,7 @@ const winston = require('winston');
 const config = {
     file: {
         level: 'info',
-        filename: '../players.log',
+        filename: 'players.log',
         handleExceptions: true,
         json: true,
         format: winston.format.combine(
