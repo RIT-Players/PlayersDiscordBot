@@ -89,13 +89,10 @@ async function messageArrayToJSONArray(messagesArray, channel){
 
 //Create a JSON entry from the message object
 function createJsonFromMessage(message){
-    let author = message.guild.member(message.author);
-    let displayName = "Unknown Author";
-    if(author){
-        displayName = author.displayName;
-    }
+    let author = message.author;
+
     return {
-        author: displayName,
+        author: author.username,
         message: message.content,
         timestamp: (new Date(message.createdTimestamp)).toString()
     }
