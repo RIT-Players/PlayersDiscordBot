@@ -2,6 +2,16 @@
 // main cmds.js
 const main = require('../cmds.js');
 
+// emojis have different ids per server
+const emoji = {
+
+    // build-a-bot emoji id
+    '648687731047661568': '676498288416915471',
+
+    // players emoji id
+    '468982381899022337': '486585575290175508'
+
+};
 
 exports.ttmtg = {
 
@@ -34,7 +44,7 @@ exports.ttmtg = {
         h %= 24;
 
         message.channel.send(`${day} days, ${h} hours, ${min} minutes, and ${s} seconds until the next Players meeting.`)
-            .then(message => message.react('676498288416915471'))
+            .then(message => message.react(emoji[message.guild.id]))
             .catch(console.error);
 
     }

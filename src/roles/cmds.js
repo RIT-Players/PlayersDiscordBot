@@ -20,11 +20,8 @@ exports.iam = {
         main.logCommand(this.name, args); // logging
 
         if (args.length < 1) {
-
-            // todo
-
+            main.sendUsage(this.name, message);
             return;
-
         }
 
         roles.assign(message.member, args[0]).catch(e => {
@@ -50,6 +47,11 @@ exports.iamnot = {
 
         main.logCommand(this.name, args); // logging
 
+        if (args.length < 1) {
+            main.sendUsage(this.name, message);
+            return;
+        }
+
         roles.unassign(message.member, args[0]).catch(e => {
 
             // confirmation/error message
@@ -59,6 +61,92 @@ exports.iamnot = {
                 console.error(e);
 
         });
+
+    }
+
+};
+
+exports.theyare = {
+
+    name: 'theyare',
+    usage: 'theyare (role) (users)',
+    help: 'assigns a role to multiple people',
+    func: function (args, message) {
+
+        // logging
+        main.logCommand(this.name, args);
+
+        // check arguments
+        if (args.length < 2) {
+            main.sendUsage(this.name, message);
+            return;
+        }
+
+        // check permissinos
+        if (!message.member.hasPermission('MANAGE_ROLES')) {
+            message.channel.send('You do not have permission to change the roles in this server.');
+            return;
+        }
+
+        // resolve users
+        let gm = roles.members(args.splice(1), message);
+        if (gm.length < 1) return;
+
+        // assign roles
+        gm.forEach(u =>
+            roles.assign(u, args[0]).catch(e => {
+
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
+
+            })
+        );
+
+    }
+
+};
+
+exports.theyarenot = {
+
+    name: 'theyarenot',
+    usage: 'theyarenot (role) (users)',
+    help: 'unassigns a role from multiple people',
+    func: function (args, message) {
+
+        // logging
+        main.logCommand(this.name, args);
+
+        // check arguments
+        if (args.length < 2) {
+            main.sendUsage(this.name, message);
+            return;
+        }
+
+        // check permissinos
+        if (!message.member.hasPermission('MANAGE_ROLES')) {
+            message.channel.send('You do not have permission to change the roles in this server.');
+            return;
+        }
+
+        // resolve users
+        let gm = roles.members(args.splice(1), message);
+        if (gm.length < 1) return;
+
+        // assign roles
+        gm.forEach(u =>
+            roles.unassign(u, args[0]).catch(e => {
+
+                // confirmation/error message
+                if (typeof e === "string")
+                    message.channel.send(e);
+                else
+                    console.error(e);
+
+            })
+        );
 
     }
 
