@@ -1,13 +1,17 @@
+//
+// Interface with the main command system. Delegates responsibility to post_cmd.
+//
+
 
 // main cmds.js
 const main = require('../cmds.js');
 
 
-exports.schedule = {
+exports.post = {
 
 
-    name: "schedule",
-    usage: 'schedule',
+    name: "post",
+    usage: 'post (cmd) [opts]',
     help: 'does schedule stuff', // todo
     func: function (args, message) {
 

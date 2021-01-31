@@ -14,9 +14,16 @@ const logger = require("./logging.js").logger;
 // command handling
 const cmds = require("./cmds.js");
 
+// posts timing system
+const time = require("./post/time.js");
+
 client.on("ready", () => {
     // This event will run if the bot starts, and logs in, successfully.
     logger.info(`Started with ${client.users.size} users in ${client.channels.size} channels of ${client.guilds.size} servers.`);
+
+    logger.info('Starting timing system for recurring posts...');
+    time.init(client);
+    logger.info('Done.');
 });
 
 client.on("message", async message => {
