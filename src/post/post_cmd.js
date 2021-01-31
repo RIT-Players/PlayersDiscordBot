@@ -36,11 +36,13 @@ const commands = {
                 return;
             }
 
-            // TODO
+            // run command
+            posts.create(args, message);
 
         }
     },
     add: { cmd_nick: 'create' },
+    new: { cmd_nick: 'create' },
 
     edit: {
 
@@ -61,7 +63,8 @@ const commands = {
                 return;
             }
 
-            // TODO
+            // run command
+            posts.edit(args, message);
 
         }
 
@@ -87,7 +90,8 @@ const commands = {
                 return;
             }
 
-            // TODO
+            // run command
+            posts.delete(args, message);
 
         }
 
@@ -115,7 +119,8 @@ const commands = {
                 return;
             }
 
-            // TODO
+            // run command
+            posts.skip(args, message);
 
         }
 
@@ -128,9 +133,57 @@ const commands = {
         usage: 'list',
         func: function (args, message) {
 
-            // TODO
+            // run command
+            posts.list(message);
 
         }
     }
+
+};
+
+/**
+ * Handle a role subcommand.
+ * @param {string[]} args   the arguments to the role command
+ * @param {Message} message the message the command was sent in
+ */
+exports.run = function (args, message) {
+
+    if (args.length < 1) {
+        // todo
+        return;
+    }
+
+    if (commands[args[0]]) {
+        let s_cmd = args.shift();
+        if (commands[s_cmd].cmd_nick) commands[commands[s_cmd].cmd_nick].func(args, message);
+        else commands[s_cmd].func(args, message);
+    }
+
+};
+
+/**
+ * Extra help information for the role command (i.e. its subcommands).
+ * @return {string} extra help message
+ */
+exports.help = function () {
+
+    let msg = 'Post commands:';
+
+    for (let key in commands) {
+        msg += commands[key].cmd_nick ? '' : `\n${commands[key].usage} - ${commands[key].help}`;
+    }
+
+    return msg;
+
+};
+
+/**
+ * Respond to a message with the usage of a command.
+ * @param {string} cmd      the command
+ * @param {Message} message the message to respond to
+ */
+exports.sendUsage = (cmd, message) => {
+
+    message.channel.send(`Usage of ${cmd} ((required) [optional]): ${config.prefix}${commands[cmd].usage}`); // todo
 
 };

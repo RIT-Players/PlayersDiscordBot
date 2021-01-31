@@ -10,23 +10,23 @@ let data = {};
 
 
 exports.create = function (args, message) {
-
+    console.log('post create was called');
 };
 
 exports.edit = function (args, message) {
-
+    console.log('post edit was called');
 };
 
 exports.delete = function (args, message) {
-
+    console.log('post delete was called');
 };
 
 exports.skip = function (args, message) {
-
+    console.log('post skip was called');
 };
 
 exports.list = function (message) {
-
+    console.log('post list was called');
 };
 
 
