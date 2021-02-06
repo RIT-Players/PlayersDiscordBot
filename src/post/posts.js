@@ -52,7 +52,7 @@ exports.create = function (args, message) {
     // store post information
     data[guild][post.channel][new String(post.id)] = post;
     data.index[new String(post.id)] = [guild, post.channel];
-    // todo: SAVE
+    save();
 
     console.log(data);
     message.channel.send(`Created ${post.type_string} post (#${post.id})` +
@@ -75,14 +75,24 @@ exports.edit = function (args, message) {
  * @param {Message} message
  */
 exports.delete = function (args, message) {
-    console.log('post delete was called');
 
-    if (!data.index[args[0]]) {
-        message.channel.send(`Could not find post with id #${args[0]}.`);
+    // check args
+    if (!data[message.guild.id] ||
+        !data[message.guild.id][message.channel.id] ||
+        !data[message.guild.id][message.channel.id][args[0]]) {
+        message.channel.send(`Could not find post with id #${args[0]} for this channel.`);
         return;
     }
 
+    // remove post from time table
     time.remove(Number.parseInt(args[0]));
+
+    // remove post from data
+    delete data[message.guild.id][message.channel.id][args[0]];
+    delete data.index[args[0]];
+    save();
+
+    message.channel.send(`Deleted post #${args[0]}.`);
 };
 
 /**
