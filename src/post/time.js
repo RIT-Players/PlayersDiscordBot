@@ -72,47 +72,32 @@ exports.add = function (id, time) {
  */
 exports.remove = function (id) {
 
-    // recursively search an object for a numerical value
-    function search(num, obj) {
-        for (const [k, v] of Object.entries(obj)) {
-            if (v === num) return Array.of(k);
-            if (v instanceof Object) {
-                let s = search(num, v);
-                if (s) {
-                    s.unshift(k);
-                    return s;
+    // first level of search is the post time
+    for (let [k1, v1] of Object.entries(ttable)) {
+
+        // second level of search is post type
+        for (let [k2, v2] of Object.entries(v1)) {
+
+            // third level of search is post id
+            if (v2[new String(id)]) {
+
+                if (Object.keys(v2).length > 1) {
+                    // only the post information can be removed
+                    delete v2[new String(id)];
+                    return;
+                } else if (Object.keys(v1).length > 1) {
+                    // this is the only post of this type at this time
+                    delete v1[k2];
+                    return;
+                } else {
+                    // this is the only post with this time
+                    delete ttable[k1];
+                    return;
                 }
+
             }
         }
     }
-
-    // search returns an array used to navigate to object
-    // it is ASSUMED the post number has been checked so search should return a valid array
-    let array = search(id, ttable);
-
-    // used to resolve what to delete
-    let objects = [ttable];
-    let k = array[0];
-
-    // resolve internal objects
-    for (let i = 1; i < array.length; i++) {
-        objects.unshift(objects[0][k]);
-        k = array[i];
-    }
-
-    // find largest deletable part
-    while (objects.length > 1) {
-        if (Object.keys(objects[0]).length > 1) break;
-        objects.shift();
-        array.pop();
-        k = array[array.length - 1];
-    }
-
-    // actually delete post and extraneous time table information
-    delete objects[0][k];
-
-    // this method is so complicated in order to delete as much information as possible from the time table as to
-    // avoid clutter from repetitive creating and deleting
 
 };
 
