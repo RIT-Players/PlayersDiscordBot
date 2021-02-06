@@ -2,6 +2,15 @@
 // Handles post timing system for timed messages.
 //
 
+
+// strings to indicate post frequency type
+const DAILY_STRING = 'daily';
+const WEEKLY_STRING = 'weekly';
+const BIWEEKLY_STRING = 'biweekly';
+const MONTHLY_STRING = 'monthly';
+const YEARLY_STRING = 'yearly';
+
+
 // used to send posts when the time table indicates they should be posted
 const posts = require('./posts.js');
 
@@ -11,6 +20,7 @@ let client;
 // time table for quickly looking up what to post at a given time
 // does NOT validate guild
 const ttable = {};
+
 
 /**
  * Temporary initialization function to start the timing system.
@@ -29,6 +39,30 @@ exports.init = function (_client) {
  */
 exports.add = function (id, time) {
 
+    // extract needed information
+    let time_string = new String(time.time);
+    let type_string = '-1';
+    switch (time.type) {
+        case 0:
+        case 100:
+            type_string = new String(time.type + time.value);
+            break;
+        case 10000:
+            type_string = new String(time.type + time.value * 100 + time.value2);
+            break;
+    }
+
+    // create objects as needed
+    if (!ttable[time_string]) ttable[time_string] = {};
+    if (!ttable[time_string][type_string]) ttable[time_string][type_string] = {};
+
+    // add post
+    if (time.type_reference)
+        ttable[time_string][type_string][new String(id)] = {
+            reference: time.type_reference,
+            start: time.value2
+        };
+    else ttable[time_string][type_string][new String(id)] = 1;
 };
 
 /**
@@ -85,43 +119,79 @@ exports.remove = function (id) {
 /**
  * Produces an object representing the time information for a given post.
  * 
- * @param {string} type
- * @param {Array<string>} vals
- * 
+ * @param {Array<string>} args the post create command arguments
  * @returns {Object|undefined} the parsed time information or undefined if there was a problem
  */
-exports.parse = function (type, vals) {
+exports.parse = function (args) {
+
+    // TODO: logging
 
     // object to return
     let ret = {};
 
     // parse post time type
-    switch (type.toLowerCase()) {
-        case 'daily': // remind every day at a given time
+    switch (args.shift().toLowerCase()) {
+        case DAILY_STRING: // remind every day at a given time
             ret.type = -1;
-            ret.type_string = 'daily';
+            ret.type_string = DAILY_STRING;
+            ret.value = 0;
+
+            // daily posts require no additional information
             break;
-        case 'weekly': // remind every week on a given day
+        case WEEKLY_STRING: // remind every week on a given day
             ret.type = 0;
-            ret.type_string = 'weekly';
+            ret.type_string = WEEKLY_STRING;
+
+            // weekly posts require the day of the week to post
+            if (args.length < 1) return;
+            ret.value = parseDay(args.shift());
+
             break;
-        case 'biweekly': // remind every other week on a given day
+        case BIWEEKLY_STRING: // remind every other week on a given day
             ret.type = 0;
             ret.type_reference = Date.now();
-            ret.type_string = 'biweekly';
+            ret.type_string = BIWEEKLY_STRING;
+
+            // biweekly posts require the day of the week to post and whether or not this week starts the posting
+            if (args.length < 2) return;
+            ret.value = parseDay(args.shift());
+            ret.value2 = parseBoolean(args.shift());
+            if (ret.value2 === undefined) return;
+
             break;
-        case 'monthly': // remind every month on a given date
+        case MONTHLY_STRING: // remind every month on a given date
             ret.type = 100;
-            ret.type_string = 'monthly';
+            ret.type_string = MONTHLY_STRING;
+
+            // monthly posts require the date of the month to post
+            if (args.length < 1) return;
+            ret.value = parseDate(args.shift());
+
             break;
-        case 'annually': // remind every year on a given date
+        case YEARLY_STRING: // remind every year on a given date
             ret.type = 10000;
-            ret.type_string = 'annual';
+            ret.type_string = YEARLY_STRING;
+
+            // yearly posts require the month and date to post
+            if (args.length < 1) return;
+            ret.value = parseMonth(args.shift());
+            ret.value2 = parseDate(args.shift());
+            if (isNaN(ret.value2)) return;
+
             break;
         default: return;
     }
 
-    
+    // check time value
+    if (isNaN(ret.value)) return;
+
+    // if given a custom time to post, attempt to parse it
+    if (args[0].toLowerCase().startsWith('-t=')) {
+        ret.time = parseTime(args.shift());
+        if (isNaN(ret.time)) return;
+    } else ret.time = 1000;
+    ret.hour = Math.floor(ret.time / 100);
+    ret.minute = ret.time % 100;
 
     return ret;
 
@@ -144,9 +214,9 @@ function inter() {
     if (!tobject) return;
 
     // daily posts
-    if (tobject['0'])
-        for (let [k] of Object.entries(tobject['0']))
-            posts.post(new Number(k));
+    if (tobject['-1'])
+        for (let [k] of Object.entries(tobject['-1']))
+            posts.post(new Number(k), client);
 
     // day/date information
     let day = new String(d.getDay());
@@ -158,26 +228,26 @@ function inter() {
         for (let [k, v] of Object.entries(tobject[day])) {
 
             // weekly
-            if (v instanceof Number) {
-                posts.post(new Number(k));
+            if (!Number.isNaN(v)) {
+                posts.post(new Number(k), client);
                 continue;
             }
 
             // biweekly
-            if (Math.floor((Date.now() - v.reference) / (1000 * 60 * 60 * 24 * 7) % 2) ? start : !start)
-                posts.post(new Number(k));
+            if (Math.floor((Date.now() - v.reference) / (1000 * 60 * 60 * 24 * 7) % 2) ? !v.start : v.start)
+                posts.post(new Number(k), client);
 
         }
 
     // monthly posts
     if (tobject[date])
         for (let [k] of Object.entries(tobject[date]))
-            posts.post(new Number(k));
+            posts.post(new Number(k), client);
 
     // annual posts
     if (tobject[full_date])
         for (let [k] of Object.entries(tobject[full_date]))
-            posts.post(new Number(k));
+            posts.post(new Number(k), client);
 }
 
 /**
@@ -191,4 +261,164 @@ function timeout() {
     // call interval function again every minute
     client.setInterval(inter, 60000);
 
+}
+
+/**
+ * Attempt to parse a string representation of a boolean into an actual boolean.
+ * 
+ * @param {string} s            the string
+ * @returns {boolean|undefined} the corresponding boolean value or undefined if parsing failed
+ */
+function parseBoolean(s) {
+
+    // lowercase of s
+    let sl = s.toLowerCase().trim();
+
+    // s is true
+    if (sl === 'true' || sl === 't' || sl === '1')
+        return true;
+
+    // s is false
+    if (sl === 'false' || sl === 'f' || sl === '0')
+        return false;
+
+    // s is neither
+    return undefined;
+}
+
+/**
+ * Attempt to parse a string representation of the day of the week into a number 0 - 6 (Sun. - Sat.).
+ * 
+ * @param {string} s            the string
+ * @returns {number|undefined}  the number or undefined if parsing failed
+ */
+function parseDay(s) {
+
+    // day given as a number
+    let ret = Number.parseInt(s);
+    if (Number.isInteger(ret) && ret >= 0 && ret < 7) return ret;
+
+    // day given as string
+    switch (s.toLowerCase()) {
+        case 'sun':
+        case 'sunday':
+            return 0;
+        case 'm':
+        case 'mon':
+        case 'monday':
+            return 1;
+        case 'tue':
+        case 'tues':
+        case 'tuesday':
+            return 2;
+        case 'w':
+        case 'wed':
+        case 'wednesday':
+            return 3;
+        case 'thu':
+        case 'thur':
+        case 'thursday':
+            return 4;
+        case 'f':
+        case 'fri':
+        case 'friday':
+            return 5;
+        case 'sat':
+        case 'saturday':
+            return 6;
+    }
+
+    return undefined;
+}
+
+/**
+ * Attempt to parse a string representation of a date of the month into a number 1 - 31.
+ * 
+ * @param {string} s            the string
+ * @returns {number|undefined}  the number or undefined if parsing failed
+ */
+function parseDate(s) {
+
+    let ret = Number.parseInt(s);
+
+    // bounds checking
+    if (!Number.isInteger(ret) || ret < 1 || ret > 31) return;
+
+    return ret;
+}
+
+/**
+ * Attempt to parse a string representation of a month into a number 0 - 11 (Jan. - Dec.).
+ * 
+ * @param {string} s            the string
+ * @returns {number|undefined}  the number or undefined if parsing failed
+ */
+function parseMonth(s) {
+
+    // month given as a number
+    let ret = Number.parseInt(s);
+    if (Number.isInteger(ret) && ret >= 1 && ret < 12) return ret - 1;
+
+    // month given as string
+    switch (s.toLowerCase()) {
+        case 'jan':
+        case 'january':
+            return 0;
+        case 'f':
+        case 'feb':
+        case 'february':
+            return 1;
+        case 'mar':
+        case 'march':
+            return 2;
+        case 'apr':
+        case 'april':
+            return 3;
+        case 'may':
+            return 4;
+        case 'jun':
+        case 'june':
+            return 5;
+        case 'jul':
+        case 'july':
+            return 6;
+        case 'aug':
+        case 'august':
+            return 7;
+        case 's':
+        case 'sep':
+        case 'sept':
+        case 'september':
+            return 8;
+        case 'o':
+        case 'oct':
+        case 'october':
+            return 9;
+        case 'n':
+        case 'nov':
+        case 'november':
+            return 10;
+        case 'd':
+        case 'dec':
+        case 'december':
+            return 11;
+    }
+
+    return undefined;
+}
+
+/**
+ * Attempt to parse a string representation of a time of the day (in military time) into a number 0 - 2359.
+ * 
+ * @param {string} s            the string
+ * @returns {number|undefined}  the number or undefined if parsing failed
+ */
+function parseTime(s) {
+
+    let ret = Number.parseInt(s.substring(3));
+
+    // bounds checking
+    if (!Number.isInteger(ret) || ret < 0 || ret > 2359) return;
+
+    return ret;
 }
