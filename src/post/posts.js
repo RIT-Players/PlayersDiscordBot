@@ -2,22 +2,28 @@
 // Used for post validation, creation and storage.
 //
 
+// file system for saving the post data
 const fs = require('fs');
 
+// timing system
 const time = require('./time.js');
 
+// post data file
 const file = __dirname + '/data.json';
 
+// initial data object
 let data = {
     index: {}
 };
+// last id used
 let last_id = 0;
 
 
 /**
+ * Attempts to create a new recurring post in the given message's guild and channel using the given arguments.
  * 
- * @param {Array<string>} args
- * @param {Message} message
+ * @param {Array<string>} args  the recurring post arguments
+ * @param {Message} message     the message to respond to
  */
 exports.create = function (args, message) {
 
@@ -61,25 +67,25 @@ exports.create = function (args, message) {
 };
 
 /**
+ * Attempts to edit a recurring post using the given arguments.
  * 
- * @param {Array<string>} args
- * @param {Message} message
+ * @param {Array<string>} args  the recurring post arguments prepended with the post id
+ * @param {Message} message     the message to respond to
  */
 exports.edit = function (args, message) {
     console.log('post edit was called');
 };
 
 /**
+ * Attempts to delete a recurring post by its id.
  * 
- * @param {Array<string>} args
- * @param {Message} message
+ * @param {Array<string>} args  an array containing the post id to delete
+ * @param {Message} message     the message to respond to
  */
 exports.delete = function (args, message) {
 
     // check args
-    if (!data[message.guild.id] ||
-        !data[message.guild.id][message.channel.id] ||
-        !data[message.guild.id][message.channel.id][args[0]]) {
+    if (!exists(message.guild.id, message.channel.id, args[0])) {
         message.channel.send(`Could not find post with id #${args[0]} for this channel.`);
         return;
     }
@@ -105,8 +111,9 @@ exports.skip = function (args, message) {
 };
 
 /**
+ * Responds to a message with a lists of posts for that message's guild and channel.
  * 
- * @param {Message} message
+ * @param {Message} message the message to respond to
  */
 exports.list = function (message) {
     console.log('post list was called');
@@ -170,8 +177,10 @@ function load() {
 load();
 
 /**
+ * Gets a post's data by just id.
  * 
- * @param {number} id
+ * @param {number} id   the post id
+ * @returns {Object}    the post
  */
 function get(id) {
     let a = data.index[new String(id)];
@@ -180,8 +189,22 @@ function get(id) {
 }
 
 /**
+ * Check if a post (given by id) exists for a given guild and channel.
  * 
- * @param {Object} post
+ * @param {string} guild    the id of the guild that the post should be for
+ * @param {string} channel  the id of the channel that the post should be for
+ * @param {number} id       the id of the post
+ * @returns {boolean}       true if the post with the id exists for the guild and channel
+ */
+function exists(guild, channel, id) {
+    return data[guild] && data[guild][channel] && data[guild][channel][id];
+}
+
+/**
+ * Converts post data into a short string representation of when the post is sent.
+ * 
+ * @param {Object} post the post data to convert
+ * @returns {string} the string representation
  */
 function timeString(post) {
 
@@ -224,16 +247,9 @@ function timeString(post) {
 }
 
 function ordinal(i) {
-    var j = i % 10,
-        k = i % 100;
-    if (j === 1 && k !== 11) {
-        return i + "st";
-    }
-    if (j === 2 && k !== 12) {
-        return i + "nd";
-    }
-    if (j === 3 && k !== 13) {
-        return i + "rd";
-    }
+    var j = i % 10, k = i % 100;
+    if (j === 1 && k !== 11) return i + "st";
+    if (j === 2 && k !== 12) return i + "nd";
+    if (j === 3 && k !== 13) return i + "rd";
     return i + "th";
 }

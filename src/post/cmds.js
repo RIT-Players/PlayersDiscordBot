@@ -14,7 +14,7 @@ exports.post = {
 
     name: "post",
     usage: 'post (cmd) [opts]',
-    help: 'does schedule stuff (see "help role")', // todo
+    help: 'does schedule stuff (see "help post")',
     get help_more() {
         return post_cmd.help();
     },

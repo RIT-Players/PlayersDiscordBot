@@ -16,7 +16,7 @@ const config = require('../../config.json');
  * }
  */
 const commands = {
-
+    
     create: {
 
         name: 'create',
@@ -43,7 +43,7 @@ const commands = {
     },
     add: { cmd_nick: 'create' },
     new: { cmd_nick: 'create' },
-
+    
     edit: {
 
         name: 'edit',
@@ -70,7 +70,7 @@ const commands = {
 
     },
     set: { cmd_nick: 'edit' },
-
+    
     delete: {
 
         name: 'delete',
@@ -99,7 +99,7 @@ const commands = {
     del: { cmd_nick: 'delete' },
     remove: { cmd_nick: 'delete' },
     rm: { cmd_nick: 'delete' },
-
+    
     skip: {
 
         name: 'skip',
