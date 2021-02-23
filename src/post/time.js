@@ -170,6 +170,8 @@ exports.parse = function (args) {
     // check time value
     if (isNaN(ret.value)) return;
 
+    if (!args[0]) return ret;
+
     // if given a custom time to post, attempt to parse it
     if (args[0].toLowerCase().startsWith('-t=')) {
         ret.time = parseTime(args.shift());

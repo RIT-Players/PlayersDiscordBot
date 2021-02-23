@@ -73,6 +73,56 @@ exports.create = function (args, message) {
  * @param {Message} message     the message to respond to
  */
 exports.edit = function (args, message) {
+
+    // check args
+    if (!exists(message.guild.id, message.channel.id, args[0])) {
+        message.channel.send(`Could not find post with id #${args[0]} for this channel.`);
+        return;
+    }
+
+    // get post to be changed
+    let id = Number.parseInt(args.shift());
+
+    let msg = `Changed post #${id}'s `;
+
+    switch (args.shift().toLowerCase()) {
+        case 'type':
+            // for changing the frequency of the message
+
+            // attempt to parse the new time information
+            let newTime = time.parse(args);
+
+            // failed to parse arguments
+            if (newTime === undefined) {
+                message.channel.send('Unable to parse time details...');
+                return;
+            }
+
+            msg += `type from ${timeString(get(id))} to `;
+
+            Object.assign(get(id), newTime);
+
+            msg += `${timeString(get(id))}.`;
+
+            break;
+        case 'time':
+
+            break;
+        case 'text':
+        case 'message':
+
+            if (args.length < 1) {
+                message.channel.send('No message to post was given.');
+                return;
+            }
+
+            break;
+        default:
+            message.channel.send(`Could not parse what to edit (should be either 'type', 'time' or 'text').`);
+            return;
+    }
+
+    message.channel.send(msg);
     console.log('post edit was called');
 };
 
@@ -102,11 +152,26 @@ exports.delete = function (args, message) {
 };
 
 /**
+ * Attempts to mark a recurring post to be skipped some number of times.
  * 
- * @param {Array<string>} args
- * @param {Message} message
+ * @param {Array<string>} args  the post id followed by the number of times to skip
+ * @param {Message} message     the message to respond to
  */
 exports.skip = function (args, message) {
+
+    // check args
+    if (!exists(message.guild.id, message.channel.id, args[0])) {
+        message.channel.send(`Could not find post with id #${args[0]} for this channel.`);
+        return;
+    }
+    let n = Number.parseInt(args[1]);
+    if (isNaN(n) || n < 0) {
+        message.channel.send(`Could not parse the number of times to skip.`);
+        return;
+    }
+
+    // todo
+
     console.log('post skip was called');
 };
 
@@ -116,7 +181,6 @@ exports.skip = function (args, message) {
  * @param {Message} message the message to respond to
  */
 exports.list = function (message) {
-    console.log('post list was called');
 
     if (!data[message.guild.id] ||
         !data[message.guild.id][message.channel.id] ||
@@ -145,6 +209,12 @@ exports.post = function (post, client) {
     // get post
     let p = get(post);
 
+    // account for skipping
+    if (p.skip) {
+        console.log(`#${post} was skipped!`);
+        p--;
+    }
+
     // send message
     client.channels.get(p.channel).send(p.text);
 };
@@ -169,6 +239,13 @@ function load() {
     fs.readFile(file, (err, d) => {
         if (err) throw err;
         data = JSON.parse(d);
+
+        for (let [k] of Object.entries(data.index)) {
+            console.log(k);
+            let id = Number.parseInt(k);
+            if (last_id < id) last_id = id;
+            time.add(id, get(id));
+        }
     });
 
 }
