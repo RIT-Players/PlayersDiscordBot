@@ -156,7 +156,7 @@ exports.role = {
 
     name: "role",
     usage: 'role (cmd) [opts]',
-    help: 'do role stuff (see help role)',
+    help: 'do role stuff (see "help role")',
     get help_more() {
         return role_cmd.help();
     },

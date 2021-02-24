@@ -219,6 +219,6 @@ exports.help = function () {
  */
 exports.sendUsage = (cmd, message) => {
 
-    message.channel.send(`Usage of ${cmd} ((required) [optional]): ${config.prefix}${commands[cmd].usage}`); // todo
+    message.channel.send(`Usage of role ${cmd} ((required) [optional]): ${config.prefix}role ${commands[cmd].usage}`); // todo
 
 };

@@ -7,7 +7,7 @@ const config = require("../config.json");
 const logger = require("./logging.js").logger;
 
 const cmds_util = require('./util/cmds.js');
-const cmds_schedule = require('./schedule/cmds.js');
+const cmds_post = require('./post/cmds.js');
 const cmds_players = require('./players/cmds.js');
 const cmds_roles = require('./roles/cmds.js');
 const cmds_archive = require('./archive/cmds.js');
@@ -19,7 +19,7 @@ const commands = {
     
     ttmtg: cmds_players.ttmtg,
     
-    schedule: cmds_schedule.schedule,
+    post: cmds_post.post,
     
     iam: cmds_roles.iam,
 
