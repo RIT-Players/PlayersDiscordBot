@@ -173,10 +173,27 @@ exports.parse = function (args) {
     if (!args[0]) return ret;
 
     // if given a custom time to post, attempt to parse it
-    if (args[0].toLowerCase().startsWith('-t=')) {
-        ret.time = parseTime(args.shift());
-        if (isNaN(ret.time)) return;
-    } else ret.time = 1000;
+    let time = exports.parseTime(args[0].toLowerCase().startsWith('-t=') ? args.shift().substring(3) : '1000');
+    if (!time) return;
+    Object.assign(ret, time);
+
+    return ret;
+
+};
+
+/**
+ * Parses the string representation of a time (in military time).
+ * 
+ * @param {string} s            the string representation of the time to parse
+ * @returns {object|undefined}  the time details embedded in an object
+ */
+exports.parseTime = function (s) {
+
+    let ret = {};
+
+    ret.time = parseTime(s);
+    if (isNaN(ret.time)) return;
+
     ret.hour = Math.floor(ret.time / 100);
     ret.minute = ret.time % 100;
 
@@ -402,7 +419,9 @@ function parseMonth(s) {
  */
 function parseTime(s) {
 
-    let ret = Number.parseInt(s.substring(3));
+    s = s.replace(":", "");
+
+    let ret = Number.parseInt(s);
 
     // bounds checking
     if (!Number.isInteger(ret) || ret < 0 || ret > 2359) return;

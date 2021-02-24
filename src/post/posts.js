@@ -62,7 +62,7 @@ exports.create = function (args, message) {
 
     console.log(data);
     message.channel.send(`Created ${post.type_string} post (#${post.id})` +
-        ` to send ${timeString(post)} with the text '${post.text}'.`);
+        ` to send ${typeString(post)} with the text '${post.text}'.`);
     
 };
 
@@ -90,31 +90,69 @@ exports.edit = function (args, message) {
             // for changing the frequency of the message
 
             // attempt to parse the new time information
-            let newTime = time.parse(args);
+            let newType = time.parse(args);
 
             // failed to parse arguments
-            if (newTime === undefined) {
+            if (!newType) {
                 message.channel.send('Unable to parse time details...');
                 return;
             }
 
-            msg += `type from ${timeString(get(id))} to `;
+            // add to response
+            msg += `type from ${typeString(get(id))} to `;
 
+            // actually update post in data object
+            Object.assign(get(id), newType);
+
+            msg += `${typeString(get(id))}.`;
+
+            // update time table
+            time.remove(id);
+            time.add(id, get(id));
+
+            break;
+
+        case 'time':
+            // for changing the time the message is sent
+
+            // attempt to parse new time
+            let newTime = time.parseTime(args[0]);
+
+            // failed to parse arguments
+            if (!newTime) {
+                message.channel.send('Unable to parse time details...');
+                return;
+            }
+
+            // add to response
+            msg += `time from ${timeString(get(id))} to `;
+
+            // actually update post in data object
             Object.assign(get(id), newTime);
 
             msg += `${timeString(get(id))}.`;
 
-            break;
-        case 'time':
+            // update time table
+            time.remove(id);
+            time.add(id, get(id));
 
             break;
         case 'text':
         case 'message':
 
+            // check args
             if (args.length < 1) {
                 message.channel.send('No message to post was given.');
                 return;
             }
+
+            // add to response
+            msg += `text from '${get(id).text}' to `;
+
+            // update post text in data object
+            get(id).text = args.join(' ');
+
+            msg += `'${get(id).text}'.`;
 
             break;
         default:
@@ -122,8 +160,11 @@ exports.edit = function (args, message) {
             return;
     }
 
+    // send (hopefully helpful) response
     message.channel.send(msg);
-    console.log('post edit was called');
+
+    // save changes to data object (which at this point should be valid)
+    save();
 };
 
 /**
@@ -170,9 +211,13 @@ exports.skip = function (args, message) {
         return;
     }
 
-    // todo
+    let id = Number.parseInt(args[0]);
+    get(id).skip = n;
+
+    message.channel.send(`Changed the number of times to skip post #${id} to ${n} time${n === 1 ? '' : 's'}.`);
 
     console.log('post skip was called');
+    save();
 };
 
 /**
@@ -191,8 +236,11 @@ exports.list = function (message) {
 
     let msg = `Posts for the ${message.channel.name} channel in ${message.guild.name}:`;
 
-    for (let [k, v] of Object.entries(data[message.guild.id][message.channel.id]))
-        msg += `\n${k}: "${v.text}" (${timeString(v)})`;
+    for (let [k, v] of Object.entries(data[message.guild.id][message.channel.id])) {
+        msg += `\n${k}: "${v.text}" (${typeString(v)}`;
+        if (v.skip) msg += `, to be skipped ${v.skip} time${v.skip === 1 ? '' : 's'}`;
+        msg += ')';
+    }
 
     message.channel.send(msg);
 };
@@ -212,7 +260,9 @@ exports.post = function (post, client) {
     // account for skipping
     if (p.skip) {
         console.log(`#${post} was skipped!`);
-        p--;
+        p.skip--;
+        save();
+        return;
     }
 
     // send message
@@ -283,7 +333,7 @@ function exists(guild, channel, id) {
  * @param {Object} post the post data to convert
  * @returns {string} the string representation
  */
-function timeString(post) {
+function typeString(post) {
 
     let ret;
     let a = [];
@@ -312,15 +362,18 @@ function timeString(post) {
             break;
     }
 
+    ret += ` at ${timeString(post)}`;
+    return ret;
+}
+
+function timeString(post) {
     let t;
     if (post.hour > 12) t = `${post.hour - 12}:`;
     else if (post.hour === 0) t = '12:';
     else t = `${post.hour}:`;
     if (post.hour > 11) t += `${new String(post.minute).padStart(2, '0')}pm`;
     else t += `${new String(post.minute).padStart(2, '0')}am`;
-    
-    ret += ` at ${t}`;
-    return ret;
+    return t;
 }
 
 function ordinal(i) {
