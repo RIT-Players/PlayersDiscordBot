@@ -105,9 +105,9 @@ dist
 
 
 # PlayersBot Files
-tokens.json
+tokensPROD.json
 .idea/*
 .DS_Store
 .vs/*
 channelArchive/*
-tokensDEV.json
+tokens.json

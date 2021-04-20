@@ -5,7 +5,7 @@ const client = new Discord.Client();
 const config = require("../config.json");
 // tokens.token contains the bot's token
 
-const tokens = require("../tokens.json");
+const tokens = require("../tokensPROD.json");
 // config.prefix contains the message prefix.
 
 // winston logger
@@ -22,6 +22,16 @@ client.on("ready", () => {
 client.on("message", async message => {
     //Ignore Bots
     if (message.author.bot) return;
+
+    if(message.isMemberMentioned(client.user)){
+        const member = await message.guild.member(message.author)
+        let  name = member.nickname
+        if(name == null){
+            name = message.author.username
+        }
+        await message.channel.send("Hi " + name + "!")
+        return;
+    }
 
     // Ignore Messages without Command Prefix
     if(message.content.indexOf(config.prefix) !== 0) return;
