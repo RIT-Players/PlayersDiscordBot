@@ -23,7 +23,9 @@ client.on("message", async message => {
     //Ignore Bots
     if (message.author.bot) return;
 
-    if(message.isMemberMentioned(client.user)){
+    let re = /.*(@everyone).*/;
+    let check = message.content.match(re)
+    if(message.isMemberMentioned(client.user) && check === null){
         const member = await message.guild.member(message.author)
         let  name = member.nickname
         if(name == null){
